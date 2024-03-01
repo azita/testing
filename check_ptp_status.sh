@@ -1,18 +1,15 @@
 #!/bin/sh
 
-# Timeout duration in seconds
-TIMEOUT_DURATION=5
+# Initial delay to give the primary container time to start
+sleep 10
 
-# Check if the ptp4l process is running
-PTP4L_PID=$(pgrep ptp4l)
-if [ -z "$PTP4L_PID" ]; then
-    echo "ptp4l process not found"
-fi
-
-# Check if the phc2sys process is running
-PHC2SYS_PID=$(pgrep phc2sys)
-if [ -z "$PHC2SYS_PID" ]; then
-    echo "phc2sys process not found"
-fi
-exit 0
-
+while true; do
+    # Check for ptp4l process
+    if pgrep ptp4l > /dev/null; then
+        echo "ptp4l process found."
+        # Perform your logic here
+    else
+        echo "ptp4l process not found, retrying in 10 seconds..."
+        sleep 10
+    fi
+done
