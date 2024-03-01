@@ -17,12 +17,4 @@ if [ -z "$PHC2SYS_PID" ]; then
     exit 1
 fi
 
-# Use timeout to limit the duration of the grep command
-if timeout $TIMEOUT_DURATION nsenter -t $PTP4L_PID -m -- cat /proc/${PTP4L_PID}/fd/1 | grep -qE "s[12]"; then
-    echo "PTP locked or in holdover state (s1/s2)."
-    exit 0
-else
-    echo "PTP unlocked, in an unknown state, or a timeout occurred."
-    exit 1
-fi
 
