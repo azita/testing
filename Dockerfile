@@ -15,7 +15,17 @@ RUN apt-get -qq update && \
     rm -rf /var/cache/apt/* && \
     curl -sLO https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-${VERSION}-${BUILDX_ARCH}.tar.gz && \
     tar zxvf crictl-$VERSION-${BUILDX_ARCH}.tar.gz -C /usr/bin && \
-    rm -f crictl-$VERSION-${BUILDX_ARCH}.tar.gz && \
-    apt-get -qq autoremove curl unzip
-RUN apt-get -qq install systemctl
+    rm -f crictl-$VERSION-${BUILDX_ARCH}.tar.gz
+
+# Keep curl, install jq, and clean up in one RUN command to reduce layer size
+RUN apt-get install -y jq && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Systemctl is typically not functional within containerized environments,
+# but it's included as per your request
+RUN apt-get update && \
+    apt-get install -y systemctl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
