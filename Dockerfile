@@ -1,39 +1,21 @@
 FROM registry.k8s.io/node-problem-detector/node-problem-detector:v0.8.14 as builder
 
-# Set default build architecture
+# Install crictl
 ARG TARGETOS
 ARG TARGETARCH
+#`BUILDX_ARCH` will be used in the buildx package download URL
+# The required format is in `TARGETOS-TARGETARCH`
+# Set it default to linux-amd64 to make the Dockerfile
+# works with / without buildkit
 ENV BUILDX_ARCH="${TARGETOS:-linux}-${TARGETARCH:-amd64}"
 
-# crictl version
 ARG VERSION="v1.28.0"
-
-# Install necessary tools including curl, jq, and unzip (needed for crictl installation)
-# Keeping curl and jq for runtime use
-RUN apt-get update -qq && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y \
-    curl \
-    jq \
-    unzip && \
-    # Download and install crictl
-    curl -sLO https://github.com/kubernetes-sigs/cri-tools/releases/download/${VERSION}/crictl-${VERSION}-${BUILDX_ARCH}.tar.gz && \
-    tar zxvf crictl-${VERSION}-${BUILDX_ARCH}.tar.gz -C /usr/bin && \
-    rm -f crictl-${VERSION}-${BUILDX_ARCH}.tar.gz && \
-    # Clean up unnecessary packages and files
-    apt-get -qq -y autoremove && \
-    apt-get -qq -y clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install systemctl if necessary - Note: systemctl is typically not functional/required in container environments
-RUN apt-get -qq install -y systemctl
-
-
-
-# Copy crictl from the builder stage
-COPY --from=builder /usr/bin/crictl /usr/bin/crictl
-
-# Copy curl and jq from the builder stage, if not available in the final image
-# Note: This step is redundant if the final base image already includes curl and jq
-COPY --from=builder /usr/bin/curl /usr/bin/curl
-COPY --from=builder /usr/bin/jq /usr/bin/jq
+RUN apt-get -qq update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y curl unzip < /dev/null > /dev/null && \
+    rm -rf /var/cache/apt/* && \
+    curl -sLO https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-${VERSION}-${BUILDX_ARCH}.tar.gz && \
+    tar zxvf crictl-$VERSION-${BUILDX_ARCH}.tar.gz -C /usr/bin && \
+    rm -f crictl-$VERSION-${BUILDX_ARCH}.tar.gz && \
+    apt-get -qq autoremove curl unzip
+RUN apt-get -qq install systemctl
 
