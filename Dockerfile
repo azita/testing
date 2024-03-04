@@ -27,8 +27,7 @@ RUN apt-get update -qq && \
 # Install systemctl if necessary - Note: systemctl is typically not functional/required in container environments
 RUN apt-get -qq install -y systemctl
 
-# Assuming you are using a multi-stage build to keep your final image clean and minimal
-FROM registry.k8s.io/node-problem-detector/node-problem-detector:v0.8.14
+
 
 # Copy crictl from the builder stage
 COPY --from=builder /usr/bin/crictl /usr/bin/crictl
